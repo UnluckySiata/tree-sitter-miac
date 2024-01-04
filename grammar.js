@@ -51,6 +51,7 @@ module.exports = grammar({
             $.identifier,
             $.unary_expression,
             $.binary_expression,
+            $.call_expression,
             $.int_literal,
             $.float_literal,
             $.string_literal,
@@ -137,14 +138,25 @@ module.exports = grammar({
             ));
         },
 
+        call_expression: $ => prec(0, seq(
+            field("name", $.identifier),
+            "(",
+            field("arguments", 
+                sepBy(",", $._expression)
+            ),
+            ")",
+        )),
+
         parameter_list: $ => seq(
             "(",
-            sepBy(",", seq(
-                $.identifier,
-                $.type_specifier,
-                $._type
-            )),
+            sepBy(",", $.parameter),
             ")",
+        ),
+
+        parameter: $ => seq(
+            field("name", $.identifier),
+            $.type_specifier,
+            field("type", $._type),
         ),
 
         block: $ => seq(
@@ -156,7 +168,7 @@ module.exports = grammar({
         type_specifier: _ => ":",
         terminator: _ => ";",
         identifier: _ => /[a-zA-Z_][a-zA-Z0-9_]*/,
-        int_literal: _ => /[1-9][0-9]*/,
+        int_literal: _ => /[1-9][0-9]*|0/,
         float_literal: _ => /[0-9]+\.[0-9]*/,
         string_literal: _ => /"[^"]*"/,
         boolean_literal: _ => choice("true", "false"),
